@@ -425,23 +425,23 @@ textSize(70+((volume/9)+1));
 
 if(!play){
 
-text('can orph-chan\neat it??',width/2,370);
+text('can orph-chan\neat it??',width/2,270);
 
 }else{
 
 if(!dead){
 
-text('should orph-chan\neat this???',width/2,370);
+text('should orph-chan\neat this???',width/2,270);
 
 if(phase==='choice'||phase==='reveal'){
 
 textSize(60+((volume/9)+1));
 
 fill(52,235,113);
-text('-YES!-',width/2-200,520);
+text('-YES!-',width/2-200,420);
 
 fill(255,35,13);
-text('-NO!-',width/2+200,520);
+text('-NO!-',width/2+200,420);
 }
 
 }
@@ -502,7 +502,7 @@ textSize(25+((volume/9)+1));
 text(
 'There will be some kind of food\n\nmake a decision if orpheous should eat it or not\n\nfood will reveal itself after choice\n\nwrong choice will cause the end of game\n\nif you still dont understand [...]',
 width/12,
-height/12+350,
+height/12+250,
 width/2,
 2*height/3
 );
@@ -606,8 +606,8 @@ phase==='choice'&&
 ){
 
 if(
-mouseY>450&&
-mouseY<590&&
+mouseY>350&&
+mouseY<490&&
 mouseX>width/2-370&&
 mouseX<width/2-20
 ){
@@ -621,8 +621,8 @@ return;
 }
 
 if(
-mouseY>450&&
-mouseY<590&&
+mouseY>350&&
+mouseY<490&&
 mouseX>width/2+20&&
 mouseX<width/2+370
 ){
