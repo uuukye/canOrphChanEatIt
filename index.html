@@ -42,34 +42,35 @@ let resize=false;
 let play=false;
 
 let edibles=[
-  '1.png',
-  '2.png',
-  '3.png',
-  '4.png',
-  '5.jpeg',
-  '6.png',
-  '7.png',
-  '8.png',
-  '9.png',
-  '10.png',
-  '11.png',
-  '12.png',
-  '13.png'
+  'foods/1.png',
+  'foods/2.png',
+  'foods/3.png',
+  'foods/4.png',
+  'foods/5.jpeg',
+  'foods/6.png',
+  'foods/7.png',
+  'foods/8.png',
+  'foods/9.png',
+  'foods/10.png',
+  'foods/11.png',
+  'foods/12.png',
+  'foods/13.png'
 ];
 
 let unedibles=[
-  '1a.png',
-  '2a.png',
-  '3a.png',
-  '4a.webp',
-  'orf1.png',
-  '5a.png',
-  '6a.png',
-  '7a.png',
-  '8a.png',
-  '9a.png',
-  '10a.png'
+  'foods/1a.png',
+  'foods/2a.png',
+  'foods/3a.png',
+  'foods/4a.webp',
+  'foods/orf1.png',
+  'foods/5a.png',
+  'foods/6a.png',
+  'foods/7a.png',
+  'foods/8a.png',
+  'foods/9a.png',
+  'foods/10a.png'
 ];
+
 
 let currentFood;
 let currentFoodType;
@@ -111,10 +112,12 @@ let foodCon;
 let foodBright;
 
 function preload(){
-o1=loadImage('orf1.png');
-o2=loadImage('orf2.png');
-edibles = edibles.map(file => loadImage(file));
-unedibles = unedibles.map(file => loadImage(file));
+  o1 = loadImage('foods/orf1.png');
+  o2 = loadImage('foods/orf2.png');
+  sun = loadImage('foods/sun.png');
+
+  edibles = edibles.map(file => loadImage(file));
+  unedibles = unedibles.map(file => loadImage(file));
 }
 
 function setup() {
@@ -124,7 +127,7 @@ noStroke();
 textAlign(CENTER,CENTER);
 textStyle(BOLD);
 imageMode(CENTER);
-sun=loadImage("sun.png");
+sun=loadImage("foods/sun.png");
 
 if(height>width*1.5){
 resize=true;
