@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>eat it</title>
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.11.10/lib/p5.min.js"></script>
+  <style>
+body {margin: 0;padding: 0;overflow-x: hidden;overflow-y: hidden;}
+.silkscreen-regular {
+  font-family: "Silkscreen", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.silkscreen-bold {
+  font-family: "Silkscreen", sans-serif;
+  font-weight: 700;
+  font-style: normal;
+}
+   
+</style>
+</head>
+<body>
+<script>
+let chance=-999;
+let timer=999;
+let volume=0;
+let brightness=0;
+let settings=false;
+let sun;
+let ba=0;
+let ss=0;
+let o1;
+let o2;
+let oS=0;
+let oT=true;
+let resize=false;
+let play=false;
+
+let edibles=[
+  '1.png',
+  '2.png',
+  '3.png',
+  '4.png',
+  '5.jpeg',
+  '6.png',
+  '7.png',
+  '8.png',
+  '9.png',
+  '10.png',
+  '11.png',
+  '12.png',
+  '13.png'
+];
+
+let unedibles=[
+  '1a.png',
+  '2a.png',
+  '3a.png',
+  '4a.webp',
+  'orf1.png',
+  '5a.png',
+  '6a.png',
+  '7a.png',
+  '8a.png',
+  '9a.png',
+  '10a.png'
+];
+
+let currentFood;
+let currentFoodType;
+
+let foodSize;
+let foodHue;
+let pixelatedFood;
+
+let decision=false;
+let dead=false;
+let answer='';
+
+let phase='menu';
+
+let revealStart=0;
+let revealDuration=1200;
+
+let actionStart=0;
+let actionDuration=850;
+
+let foodX=0;
+let foodY=0;
+let foodStartX=0;
+let foodStartY=0;
+let foodW=0;
+let foodH=0;
+
+let mouthX=0;
+let mouthY=0;
+
+let throwX=0;
+let throwY=0;
+
+let score=0;
+
+let foodRot;
+let foodSat;
+let foodCon;
+let foodBright;
+
+function preload(){
+o1=loadImage('orf1.png');
+o2=loadImage('orf2.png');
+edibles = edibles.map(file => loadImage(file));
+unedibles = unedibles.map(file => loadImage(file));
+}
+
+function setup() {
+createCanvas(windowWidth, windowHeight);
+textFont("Silkscreen");
+noStroke();
+textAlign(CENTER,CENTER);
+textStyle(BOLD);
+imageMode(CENTER);
+sun=loadImage("sun.png");
+
+if(height>width*1.5){
+resize=true;
+}else{
+resize=false;
+}
+}
+
+function windowResized(){
+resizeCanvas(windowWidth, windowHeight);
+
+if(height>width*1.5){
+resize=true;
+}else{
+resize=false;
+}
+}
+
+function bgEffects(){
+for(let y=0;y<windowHeight+20;y+=20){
+for(let x=0;x<windowWidth+20;x+=20){
+chance=random((y/windowHeight)+0.15);
+
+if(chance>0.4){
+fill(3,37,86);
+}else if(chance>0.3){
+fill(6,42,93);
+}else if(chance>0.2){
+fill(13,47,107);
+}else if(chance>0.1){
+fill(16,52,112);
+}else{
+fill(22,57,125);
+}
+
+rect(x,y,20,20);
+}
+}
+}
+
+function bright(){
+ba=lerp(ba,brightness,0.08);
+ss=lerp(ss,0.5+(brightness/98)*0.9,0.08);
+
+if(ba>0.5){
+push();
+blendMode(SCREEN);
+noStroke();
+
+for(let i=0;i<9;i++){
+let a=(ba/98)*(48-i*4);
+let z=1+i*0.8;
+
+fill(255,255,255,a);
+
+ellipse(
+width/2,
+i*8,
+420*z+(i*20),
+350*z+(i*16)
+);
+}
+
+fill(255,255,255,(ba/98)*85);
+rect(0,0,width,height);
+pop();
+
+push();
+tint(255,ba*2.6);
+image(sun,500,500,sun.width*ss,sun.height*ss);
+pop();
+}
+}
+
+function chooseFood(){
+if(random(1)<0.5){
+currentFoodType='edible';
+currentFood=random(edibles);
+}else{
+currentFoodType='unedible';
+currentFood=random(unedibles);
+}
+
+foodSize=random(width*0.12,width*0.27);
+foodHue=random(-180,180);
+foodRot=random(-65,65);
+foodSat=random(2.5,5);
+foodCon=random(1.5,2.5);
+foodBright=random(0.7,1.4);
+
+foodW=foodSize;
+foodH=foodSize/currentFood.width*currentFood.height;
+
+foodStartX=width*0.38;
+foodStartY=height*0.64;
+
+foodX=foodStartX;
+foodY=foodStartY;
+
+mouthX=width*0.72;
+mouthY=height*0.68;
+
+throwX=width*0.06;
+throwY=height*0.88;
+
+let pixelSize=floor(random(12,18));
+let aspect=currentFood.width/currentFood.height;
+let smallWidth=pixelSize;
+let smallHeight=max(1,round(pixelSize/aspect));
+
+let pg=createGraphics(smallWidth,smallHeight);
+pg.pixelDensity(1);
+pg.noSmooth();
+pg.imageMode(CENTER);
+pg.translate(smallWidth/2,smallHeight/2);
+pg.image(currentFood,0,0,smallWidth,smallHeight);
+
+pixelatedFood=pg;
+
+decision=false;
+answer='';
+dead=false;
+
+phase='choice';
+}
+
+function easeInOut(t){
+return t<0.5
+?4*t*t*t
+:1-Math.pow(-2*t+2,3)/2;
+}
+
+function updateGame(){
+
+if(!play||dead){
+return;
+}
+
+if(phase==='reveal'){
+
+let t=constrain((millis()-revealStart)/revealDuration,0,1);
+
+if(t>=1){
+phase='action';
+actionStart=millis();
+}
+
+}else if(phase==='action'){
+
+let t=constrain((millis()-actionStart)/actionDuration,0,1);
+let eased=easeInOut(t);
+
+if(answer==='yes'){
+
+foodX=lerp(foodStartX,mouthX,eased);
+foodY=lerp(foodStartY,mouthY,eased);
+
+}else{
+
+foodX=lerp(foodStartX,throwX,eased);
+foodY=lerp(foodStartY,throwY,eased)-sin(t*PI)*110;
+}
+
+if(t>=1){
+
+let correct=
+(answer==='yes'&&currentFoodType==='edible')||
+(answer==='no'&&currentFoodType==='unedible');
+
+if(correct){
+chooseFood();
+score++;
+correct=false;
+}else{
+dead=true;
+phase='dead';
+}
+}
+}
+}
+
+function drawOrphChan(){
+
+if(!play){
+
+if(millis()-oT>=900&&oS){
+oS=!oS;
+oT=millis();
+}
+
+if(millis()-oT>=150&&!oS){
+oS=!oS;
+oT=millis();
+}
+
+if(oS){
+image(o1,3*width/4,3*height/4,width/2,height);
+}else{
+image(o2,3*width/4,3*height/4,width/2,height);
+textSize(30);
+text("press\nto\nplay",17*width/24,16*height/24);
+}
+
+}else{
+
+if(answer==='yes'&&phase==='action'){
+image(o2,3*width/4,3*height/4,width/2,height);
+}else{
+image(o1,3*width/4,3*height/4,width/2,height);
+}
+}
+}
+
+function drawFood(){
+if(!currentFood){
+return;
+}
+if(phase==='choice'){
+push();
+translate(foodX,foodY);
+rotate(radians(foodRot)); 
+drawingContext.imageSmoothingEnabled=false;
+drawingContext.filter=`hue-rotate(${foodHue}deg) saturate(${foodSat}) contrast(${foodCon}) brightness(${foodBright})`;
+image(pixelatedFood,0,0,foodW,foodH);
+pop();
+}else if(phase==='reveal'){
+let t=constrain((millis()-revealStart)/revealDuration,0,1);
+let smooth=easeInOut(t);
+let straighten=constrain(t/0.2,0,1);
+let spin=constrain((t-0.2)/0.8,0,1);
+let rotation=lerp(radians(foodRot),0,easeInOut(straighten))+radians(1080)*easeInOut(spin);
+let hue=lerp(foodHue,0,smooth);
+let saturation=lerp(foodSat,1,smooth);
+let contrast=lerp(foodCon,1,smooth);
+let brightness=lerp(foodBright,1,smooth);
+
+push();
+translate(foodX,foodY);
+rotate(rotation);
+
+if(smooth<1){
+push();
+drawingContext.imageSmoothingEnabled=false;
+drawingContext.filter=`hue-rotate(${hue}deg) saturate(${saturation}) contrast(${contrast}) brightness(${brightness})`;
+tint(255,255*(1-smooth));
+image(pixelatedFood,0,0,foodW,foodH);
+pop();
+}
+if(smooth>0){
+push();
+drawingContext.filter=`hue-rotate(${hue}deg) saturate(${saturation}) contrast(${contrast}) brightness(${brightness})`;
+tint(255,255*smooth);
+image(currentFood,0,0,foodW,foodH);
+pop();
+}
+pop();
+}else if(phase==='action'){
+if(answer==='yes'&&millis()-actionStart>actionDuration*0.78){
+return;
+}
+push();
+translate(foodX,foodY);
+image(currentFood,0,0,foodW,foodH);
+pop();
+}
+}
+
+function draw() {
+
+background(22,57,125);
+
+if(settings&&dead){
+  settings=false;
+}
+
+if(resize){
+textSize(20);
+text(
+"please make the orientation landscape! if you are on mobile, please rotate screen!",
+width/8,
+height/8,
+3*width/4,
+3*height/4
+);
+return;
+}
+
+bgEffects();
+
+updateGame();
+
+fill(255);
+textStyle(BOLD);
+textSize(70+((volume/9)+1));
+
+if(!play){
+
+text('can orph-chan\neat it??',width/2,270);
+
+}else{
+
+if(!dead){
+
+text('should orph-chan\neat this???',width/2,270);
+
+if(phase==='choice'||phase==='reveal'){
+
+textSize(60+((volume/9)+1));
+
+fill(52,235,113);
+text('-YES!-',width/2-200,420);
+
+fill(255,35,13);
+text('-NO!-',width/2+200,420);
+}
+
+}
+}
+
+fill(255);
+
+drawOrphChan();
+
+if(!settings){
+fill(14,59,138);
+strokeWeight(7);
+stroke(82,138,235);
+}else{
+fill(138,39,14);
+strokeWeight(7);
+stroke(58,12,10);
+}
+
+rect(width-120,70,50,50);
+
+noStroke();
+textSize(40);
+fill(255);
+
+if(!settings){
+text("⚙",width-95,97);
+}else{
+textSize(30);
+text("↩",width-95,97);
+}
+
+textStyle(NORMAL);
+
+if(settings){
+
+fill(206,225,245);
+textSize(25+((volume/9)+1));
+
+text(
+'-    '+'volume: '+volume+' percent    +',
+width/3,
+470
+);
+
+text(
+'-    '+'brightness: '+brightness+' percent    +',
+width/3,
+550
+);
+
+
+}else if(!play){
+
+fill(206,225,245);
+textSize(25+((volume/9)+1));
+
+text(
+'There will be some kind of food\n\nmake a decision if orpheous should eat it or not\n\nfood will reveal itself after choice\n\nwrong choice will cause the end of game\n\nif you still dont understand you might by playing the game\n\nits a ridiculous and silly game',
+width/12,
+height/12+250,
+width/2,
+2*height/3
+);
+}
+
+drawFood();
+
+if(dead){
+
+fill(255,35,13);
+textSize(80);
+text('GAME OVER',width/2,height/2-140);
+textSize(40);
+text('score: '+score,width/2,height/2-60);
+
+fill(120);
+rectMode(CENTER);
+rect(width/2,height/2+60,260,80,15);
+fill(0);
+textSize(35);
+text('RESTART',width/2,height/2+63);
+
+}
+bright();
+}
+
+function mousePressed(){
+
+if(mouseY>70&&mouseY<120){
+
+if(mouseX>width-120&&mouseX<width-70){
+
+if(settings){
+settings=false;
+}else{
+settings=true;
+}
+
+return;
+}
+}
+
+if(settings){
+
+if(mouseY>460&&mouseY<505){
+
+if(mouseX<width/3-70){
+volume-=14;
+}else if(mouseX>width/3+70){
+volume+=14;
+}
+
+volume=constrain(volume,-98,98);
+}
+
+if(mouseY>540&&mouseY<585){
+
+if(mouseX<width/3-70){
+brightness-=17;
+}else if(mouseX>width/3+70){
+brightness+=17;
+}
+
+brightness=constrain(brightness,0,98);
+}
+
+return;
+}
+
+if(dead){
+if(mouseX>width/2-130&&mouseX<width/2+130&&mouseY>height/2+20&&mouseY<height/2+100){
+dead=false;
+play=true;
+score=0;
+chooseFood();
+return;
+}
+}
+
+if(
+!play&&
+!oS&&
+mouseX>3*width/4-160&&
+mouseX<3*width/4+160&&
+mouseY>3*height/4-150&&
+mouseY<3*height/4+150
+){
+
+play=true;
+chooseFood();
+
+return;
+}
+
+if(
+play&&
+!dead&&
+phase==='choice'&&
+!decision
+){
+
+if(
+mouseY>350&&
+mouseY<490&&
+mouseX>width/2-370&&
+mouseX<width/2-20
+){
+
+answer='yes';
+decision=true;
+phase='reveal';
+revealStart=millis();
+
+return;
+}
+
+if(
+mouseY>350&&
+mouseY<490&&
+mouseX>width/2+20&&
+mouseX<width/2+370
+){
+
+answer='no';
+decision=true;
+phase='reveal';
+revealStart=millis();
+
+return;
+}
+}
+
+}
+
+</script>
+</body>
+</html>
